@@ -1,0 +1,14 @@
+name: mng3r
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - boto3
+  - python-dotenv
+  - requests
+  - coverage
+  - pip
+  - pip:
+    - slither-analyzer
+    - solc-select

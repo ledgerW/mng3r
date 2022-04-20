@@ -1,0 +1,49 @@
+{
+  "name": "mng3r",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.5.0",
+    "@openzeppelin/contracts-upgradeable": "^4.5.2",
+    "@truffle/hdwallet-provider": "^1.7.0",
+    "@walletconnect/web3-provider": "^1.7.1",
+    "dotenv": "^10.0.0",
+    "ganache-cli": "^6.12.2",
+    "mocha": "^9.1.2"
+  },
+  "scripts": {
+    "compile:evm": "truffle compile",
+    "migrate:evm": "truffle migrate",
+    "test:evm": "truffle test",
+    "compile:ovm": "truffle compile --config truffle-config.ovm.js",
+    "migrate:ovm": "truffle migrate --skip-dry-run --config truffle-config.ovm.js",
+    "test:ovm": "truffle test --config truffle-config.ovm.js",
+    "compile:avm": "truffle compile --config truffle-config.avm.js",
+    "migrate:avm": "truffle migrate --skip-dry-run --config truffle-config.avm.js",
+    "test:avm": "truffle test --config truffle-config.avm.js"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@eth-optimism/core-utils": "^0.4.4",
+    "@eth-optimism/plugins": "^0.0.20",
+    "@maticnetwork/maticjs": "^2.0.40",
+    "@openzeppelin/truffle-upgrades": "^1.14.0"
+  }
+}

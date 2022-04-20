@@ -1,0 +1,8 @@
+# truffle
+build
+
+# general
+node_modules
+.env
+.env.local
+frontend/.env.local
