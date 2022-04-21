@@ -73,7 +73,19 @@ module.exports = {
     },
     optimism_mainnet: {
       provider: () => new HDWalletProvider(MNEMONIC, "wss://ws-mainnet.optimism.io"),
-      network_id: 69,
+      network_id: 10,
+      networkCheckTimeout: 1000000000,
+      timeoutBlocks: 300
+    },
+    arbitrum_rinkeby: {
+      provider: () => new HDWalletProvider(MNEMONIC, "https://rinkeby.arbitrum.io/rpc"),
+      network_id: 421611,
+      networkCheckTimeout: 1000000000,
+      timeoutBlocks: 300
+    },
+    arbitrum_mainnet: {
+      provider: () => new HDWalletProvider(MNEMONIC, "https://arb1.arbitrum.io/rpc"),
+      network_id: 42161,
       networkCheckTimeout: 1000000000,
       timeoutBlocks: 300
     },
