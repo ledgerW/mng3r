@@ -10,6 +10,9 @@ const Quinn1155 = artifacts.require("Quinn1155")
 
 
 contract("MNG3R - Basic", async accounts => {
+  let protocol = 0
+  let testCoins = 1
+  let user = 2
   let erc20Handler
   let erc721Handler
   let erc1155Handler
@@ -19,27 +22,27 @@ contract("MNG3R - Basic", async accounts => {
   let gov
 
   before(async () => {
-    erc20Handler = await ERC20Handler.new({ from: accounts[0] })
+    erc20Handler = await ERC20Handler.new({ from: accounts[protocol] })
     await MNG3RImplementation.link("ERC20Handler", erc20Handler.address)
 
-    erc721Handler = await ERC721Handler.new({ from: accounts[0] })
+    erc721Handler = await ERC721Handler.new({ from: accounts[protocol] })
     await MNG3RImplementation.link("ERC71Handler", erc721Handler.address)
 
-    erc1155Handler = await ERC1155Handler.new({ from: accounts[0] })
+    erc1155Handler = await ERC1155Handler.new({ from: accounts[protocol] })
     await MNG3RImplementation.link("ERC1155Handler", erc1155Handler.address)
 
-    mng3rImplementation = await MNG3RImplementation.new({ from: accounts[0] })
+    mng3rImplementation = await MNG3RImplementation.new({ from: accounts[protocol] })
 
-    govImplementation = await GovImplementation.new({ from: accounts[0] })
+    govImplementation = await GovImplementation.new({ from: accounts[protocol] })
 
     // test tokens
-    quinn20 = await Quinn20.new({ from: accounts[1] })
-    quinn721 = await Quinn721.new({ from: accounts[1] })
-    quinn1155 = await Quinn1155.new({ from: accounts[1] })
+    quinn20 = await Quinn20.new({ from: accounts[testCoins] })
+    quinn721 = await Quinn721.new({ from: accounts[testCoins] })
+    quinn1155 = await Quinn1155.new({ from: accounts[testCoins] })
   })
 
   beforeEach(async () => {
-    factory = await MNG3RFactory.new(mng3rImplementation.address, govImplementation.address, { from: accounts[0] })
+    factory = await MNG3RFactory.new(mng3rImplementation.address, govImplementation.address, { from: accounts[protocol] })
 
     await factory
       .createNewMNG3R(
@@ -50,14 +53,14 @@ contract("MNG3R - Basic", async accounts => {
         '3',
         '1',
         {
-          from: accounts[0]
+          from: accounts[user]
         }
       )
 
     mng3rAddresses = await factory
       .getDeployedMNG3Rs(
         {
-          from: accounts[0]
+          from: accounts[user]
         }
       )
     mng3rAddress = mng3rAddresses[0]
@@ -66,7 +69,7 @@ contract("MNG3R - Basic", async accounts => {
     govAddresses = await factory
       .getDeployedGovs(
         {
-          from: accounts[0]
+          from: accounts[user]
         }
       )
     govAddress = govAddresses[0]
@@ -80,9 +83,22 @@ contract("MNG3R - Basic", async accounts => {
     assert.ok(gov.address)
   })
 
+  it('sends MNG3R protocol fee', async () => {
+    const caller = accounts[protocol]
+
+    await mng3r.mint(
+      accounts[7],
+      1000000,
+      { from: accounts[user] }
+    )
+
+    const balance = await mng3r.balanceOf.call(caller)
+
+    assert.equal(10000, balance)
+  })
 
   it('marks caller as the MNG3R MNG3R_ROLE', async () => {
-    const caller = accounts[0]
+    const caller = accounts[user]
 
     const MNG3R_ROLE = await mng3r.MNG3R_ROLE.call()
     const hasRole = await mng3r.hasRole.call(MNG3R_ROLE, caller)
@@ -93,12 +109,33 @@ contract("MNG3R - Basic", async accounts => {
     assert.equal(mng3rMNG3R, caller)
   })
 
-  it('sends MNG3R supply to the admin', async () => {
-    const caller = accounts[0]
+  it('sends MNG3R supply to the mng3r', async () => {
+    const caller = accounts[user]
 
     const balance = await mng3r.balanceOf.call(caller)
 
-    assert.equal(1000000, web3.utils.fromWei(balance, 'ether'))
+    assert.equal(1000000, balance)
+  })
+
+  it('updates mng3r and mng3rFee', async () => {
+    const newMNG3R = accounts[9]
+    const newFee = 1000
+
+    await mng3r.setMNG3R(
+      newMNG3R,
+      { from: accounts[user] }
+    )
+
+    await mng3r.setMNG3RFee(
+      newFee,
+      { from: accounts[user] }
+    )
+
+    const mng3rMNG3R = await mng3r.mng3r.call()
+    const mng3rFee = await mng3r.mng3rFee.call()
+
+    assert.equal(mng3rMNG3R, newMNG3R)
+    assert.equal(mng3rFee, newFee)
   })
 
   it('can receive ETH', async () => {
@@ -135,7 +172,7 @@ contract("MNG3R - Basic", async accounts => {
 
     await mng3r.sendETH(
       recipient,
-      { from: accounts[0], value: ethSend }
+      { from: accounts[user], value: ethSend }
     )
 
     const endETHBalance = await web3.eth.getBalance(recipient)
@@ -149,7 +186,7 @@ contract("MNG3R - Basic", async accounts => {
     await quinn20.transfer(
       mng3r.address,
       100,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     const EndQCBalance = await mng3r.erc20BalanceOf.call(quinn20.address)
@@ -163,14 +200,14 @@ contract("MNG3R - Basic", async accounts => {
     await quinn20.transfer(
       mng3r.address,
       100,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await mng3r.erc20Transfer(
       quinn20.address,
-      accounts[1],
+      accounts[testCoins],
       75,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const EndQCBalance = await mng3r.erc20BalanceOf.call(quinn20.address)
@@ -184,7 +221,7 @@ contract("MNG3R - Basic", async accounts => {
     await quinn721.safeMint(
       mng3r.address,
       '/1',
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     const EndQ721Balance = await mng3r.erc721BalanceOf.call(quinn721.address)
@@ -201,16 +238,16 @@ contract("MNG3R - Basic", async accounts => {
     const mintNFT = await quinn721.safeMint(
       mng3r.address,
       '/1',
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     const nftId = mintNFT.logs[0].args.tokenId.toNumber()
 
     await mng3r.erc721TransferFrom(
       quinn721.address,
-      accounts[1],
+      accounts[testCoins],
       nftId,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const EndQ721Balance = await mng3r.erc721BalanceOf.call(quinn721.address)
@@ -232,7 +269,7 @@ contract("MNG3R - Basic", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     const EndQ1155Balance = await mng3r.erc1155BalanceOf.call(quinn1155.address, THORS_HAMMER)
@@ -253,16 +290,16 @@ contract("MNG3R - Basic", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await mng3r.erc1155TransferFrom(
       quinn1155.address,
-      accounts[1],
+      accounts[testCoins],
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const EndQ1155Balance = await mng3r.erc1155BalanceOf.call(quinn1155.address, THORS_HAMMER)
@@ -285,7 +322,7 @@ contract("MNG3R - Basic", async accounts => {
       [THORS_HAMMER, LOKIS_DAGGER],
       [1, 1],
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     const EndTHORSBalance = await mng3r.erc1155BalanceOf.call(quinn1155.address, THORS_HAMMER)
@@ -300,7 +337,7 @@ contract("MNG3R - Basic", async accounts => {
     assert.equal(holdingLOKI.id.toNumber(), LOKIS_DAGGER)
   })
 
-  it('can send ERC1155', async () => {
+  it('can send ERC1155 batch', async () => {
     const THORS_HAMMER = 2
     const LOKIS_DAGGER = 3
 
@@ -312,16 +349,16 @@ contract("MNG3R - Basic", async accounts => {
       [THORS_HAMMER, LOKIS_DAGGER],
       [1, 1],
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await mng3r.erc1155BatchTransferFrom(
       quinn1155.address,
-      accounts[1],
+      accounts[testCoins],
       [THORS_HAMMER, LOKIS_DAGGER],
       [1, 1],
       "0x0",
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const EndTHORSBalance = await mng3r.erc1155BalanceOf.call(quinn1155.address, THORS_HAMMER)

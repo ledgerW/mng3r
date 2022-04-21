@@ -14,6 +14,9 @@ const Quinn1155 = artifacts.require("Quinn1155")
  * See docs: https://www.trufflesuite.com/docs/truffle/testing/writing-tests-in-javascript
  */
 contract("MNG3R - Advanced ERC20", async accounts => {
+  let protocol = 0
+  let testCoins = 1
+  let user = 2
   let erc20Handler
   let erc721Handler
   let erc1155Handler
@@ -23,25 +26,25 @@ contract("MNG3R - Advanced ERC20", async accounts => {
   let gov
 
   before(async () => {
-    erc20Handler = await ERC20Handler.new({ from: accounts[0] })
+    erc20Handler = await ERC20Handler.new({ from: accounts[protocol] })
     await MNG3RImplementation.link("ERC20Handler", erc20Handler.address)
 
-    erc721Handler = await ERC721Handler.new({ from: accounts[0] })
+    erc721Handler = await ERC721Handler.new({ from: accounts[protocol] })
     await MNG3RImplementation.link("ERC71Handler", erc721Handler.address)
 
-    erc1155Handler = await ERC1155Handler.new({ from: accounts[0] })
+    erc1155Handler = await ERC1155Handler.new({ from: accounts[protocol] })
     await MNG3RImplementation.link("ERC1155Handler", erc1155Handler.address)
 
-    mng3rImplementation = await MNG3RImplementation.new({ from: accounts[0] })
+    mng3rImplementation = await MNG3RImplementation.new({ from: accounts[protocol] })
 
-    govImplementation = await GovImplementation.new({ from: accounts[0] })
+    govImplementation = await GovImplementation.new({ from: accounts[protocol] })
 
     // test tokens
-    quinn20 = await Quinn20.new({ from: accounts[1] })
+    quinn20 = await Quinn20.new({ from: accounts[testCoins] })
   })
 
   beforeEach(async () => {
-    factory = await MNG3RFactory.new(mng3rImplementation.address, govImplementation.address, { from: accounts[0] })
+    factory = await MNG3RFactory.new(mng3rImplementation.address, govImplementation.address, { from: accounts[protocol] })
 
     await factory
       .createNewMNG3R(
@@ -52,14 +55,14 @@ contract("MNG3R - Advanced ERC20", async accounts => {
         '3',
         '1',
         {
-          from: accounts[0]
+          from: accounts[user]
         }
       )
 
     mng3rAddresses = await factory
       .getDeployedMNG3Rs(
         {
-          from: accounts[0]
+          from: accounts[user]
         }
       )
     mng3rAddress = mng3rAddresses[0]
@@ -68,7 +71,7 @@ contract("MNG3R - Advanced ERC20", async accounts => {
     govAddresses = await factory
       .getDeployedGovs(
         {
-          from: accounts[0]
+          from: accounts[user]
         }
       )
     govAddress = govAddresses[0]
@@ -77,13 +80,13 @@ contract("MNG3R - Advanced ERC20", async accounts => {
 
 
   it('can receive an ERC20 offer', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 100
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -115,13 +118,13 @@ contract("MNG3R - Advanced ERC20", async accounts => {
 
 
   it('can return an expired ERC20 offer', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 100
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -158,13 +161,13 @@ contract("MNG3R - Advanced ERC20", async accounts => {
 
 
   it('can accept an ERC20 offer - pay with Treasury', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 100
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -189,7 +192,7 @@ contract("MNG3R - Advanced ERC20", async accounts => {
     await mng3r.acceptERC20Offer(
       idx,
       assetPayType,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const ERC20Payable = await mng3r.getERC20Payable.call(quinn20.address)
@@ -208,16 +211,16 @@ contract("MNG3R - Advanced ERC20", async accounts => {
     await quinn20.transfer(
       mng3r.address,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 100
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -242,7 +245,7 @@ contract("MNG3R - Advanced ERC20", async accounts => {
     await mng3r.acceptERC20Offer(
       idx,
       assetPayType,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const ERC20Payable = await mng3r.getERC20Payable.call(quinn20.address)
@@ -256,20 +259,20 @@ contract("MNG3R - Advanced ERC20", async accounts => {
 
 
   it('can accept an ERC20 offer - pay with ERC721', async () => {
-    const quinn721 = await Quinn721.new({ from: accounts[1] })
+    const quinn721 = await Quinn721.new({ from: accounts[testCoins] })
     await quinn721.safeMint(
       mng3r.address,
       '/1',
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 100
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -294,7 +297,7 @@ contract("MNG3R - Advanced ERC20", async accounts => {
     await mng3r.acceptERC20Offer(
       idx,
       assetPayType,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const ERC20Payable = await mng3r.getERC20Payable.call(quinn20.address)
@@ -310,23 +313,23 @@ contract("MNG3R - Advanced ERC20", async accounts => {
 
 
   it('can accept an ERC20 offer - pay with ERC1155', async () => {
-    const quinn1155 = await Quinn1155.new({ from: accounts[1] })
+    const quinn1155 = await Quinn1155.new({ from: accounts[testCoins] })
     const THORS_HAMMER = 2
     await quinn1155.mint(
       mng3r.address,
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 100
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -351,7 +354,7 @@ contract("MNG3R - Advanced ERC20", async accounts => {
     await mng3r.acceptERC20Offer(
       idx,
       assetPayType,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const ERC20Payable = await mng3r.getERC20Payable.call(quinn20.address)
@@ -367,13 +370,13 @@ contract("MNG3R - Advanced ERC20", async accounts => {
 
 
   it('only the Admin can accept an ERC20 offer', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 100
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -418,13 +421,13 @@ contract("MNG3R - Advanced ERC20", async accounts => {
 
 
   it('can not accept an expired ERC20 offer', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 100
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -450,7 +453,7 @@ contract("MNG3R - Advanced ERC20", async accounts => {
       await mng3r.acceptERC20Offer(
         idx,
         assetPayType,
-        { from: accounts[0] }
+        { from: accounts[user] }
       )
     } catch (err) {
       assert.ok(err)
@@ -469,13 +472,13 @@ contract("MNG3R - Advanced ERC20", async accounts => {
 
 
   it('can not receive an ERC20 offer if offerer has insufficient tokens', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 600
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -511,13 +514,13 @@ contract("MNG3R - Advanced ERC20", async accounts => {
 
 
   it('can not send ERC20 exceeding payable obligations', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const offerAmt = 100
 
     await quinn20.transfer(
       offerMaker,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn20.increaseAllowance(
@@ -543,7 +546,7 @@ contract("MNG3R - Advanced ERC20", async accounts => {
         quinn20.address,
         accounts[5],
         75,
-        { from: accounts[0] }
+        { from: accounts[user] }
       )
     } catch (err) {
       assert.ok(err)

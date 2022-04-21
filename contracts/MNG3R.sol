@@ -50,10 +50,16 @@ contract MNG3R is
     uint256 constant MNG3R_PROTOCOL_BP = 50;
 
     /// @notice Protocol fee as percent
-    uint256 constant MNG3R_PROTOCOL_FEE = MNG3R_PROTOCOL_BP / 10000;
+    //uint256 constant MNG3R_PROTOCOL_FEE = MNG3R_PROTOCOL_BP / 10000;
 
     /// @notice Current mng3r of this MNG3R contract
     address public mng3r;
+
+    /// @notice mng3r annual management fee in basis points
+    uint256 public mng3rFee = 200;
+
+    /// @notice the last timestamp where fees were claimed
+    uint256 public lastClaimedFee;
 
     /// @notice List of ERC20 addresses held by this contract
     address[] public holding20;
@@ -93,6 +99,7 @@ contract MNG3R is
     // ====================================== //
 
     event NewMNG3R(address _oldMNG3R, address _newMNG3R);
+    event NewMNG3RFee(uint256 _oldMNG3RFee, uint256 _newFee);
     event SentETH(address to, uint256 amt);
     event SentERC20(address tokenAddress, address to, uint256 amt);
     event ReceivedERC721(address operator, address from, uint256 tokenId);
@@ -231,7 +238,8 @@ contract MNG3R is
         _grantRole(TRANSFER_ROLE, _mng3r);
         _grantRole(MINTER_ROLE, address(this));
         _grantRole(TRANSFER_ROLE, address(this));
-        _mint(_mng3r, _supply * 10**decimals());
+        _mint(_mng3r, _supply);
+        _mint(MNG3R_PROTOCOL, (_supply * MNG3R_PROTOCOL_BP) / 10000);
 
         mng3r = _mng3r;
     }
@@ -284,8 +292,7 @@ contract MNG3R is
 
     function mint(address to, uint256 amt) public onlyRole(MINTER_ROLE) {
         _mint(to, amt);
-
-        _mint(MNG3R_PROTOCOL, (amt * MNG3R_PROTOCOL_FEE));
+        _mint(MNG3R_PROTOCOL, (amt * MNG3R_PROTOCOL_BP) / 10000);
     }
 
     function pause() public onlyRole(MNG3R_ROLE) {
@@ -294,6 +301,14 @@ contract MNG3R is
 
     function unpause() public onlyRole(MNG3R_ROLE) {
         _unpause();
+    }
+
+    /// @notice Transfer ETH using standard msg.value
+    /// @param _to address of recipient
+    function sendETH(address _to) public payable onlyRole(TRANSFER_ROLE) {
+        payable(_to).transfer(msg.value);
+
+        emit SentETH(_to, msg.value);
     }
 
     /// @notice Set a new mng3r of this contract
@@ -305,12 +320,29 @@ contract MNG3R is
         emit NewMNG3R(oldMNG3R, _newMNG3R);
     }
 
-    /// @notice Transfer ETH using standard msg.value
-    /// @param _to address of recipient
-    function sendETH(address _to) public payable onlyRole(TRANSFER_ROLE) {
-        payable(_to).transfer(msg.value);
+    /// @notice Set a new mng3r annual fee
+    /// @param _newFee amount of new fee in basis points
+    function setMNG3RFee(uint256 _newFee) public onlyRole(MNG3R_ROLE) {
+        uint256 oldMNG3RFee = mng3rFee;
+        mng3rFee = _newFee;
 
-        emit SentETH(_to, msg.value);
+        emit NewMNG3RFee(oldMNG3RFee, _newFee);
+    }
+
+    /// @notice let mng3r claim mangement fee
+    function claimFees() public onlyRole(MNG3R_ROLE) {
+        // get how much in fees the mng3r would make in a year
+        uint256 currentAnnualFee = (mng3rFee / 10000) * totalSupply();
+        // get how much that is per second;
+        uint256 feePerSecond = currentAnnualFee / 31536000;
+        // get how many seconds they are eligible to claim
+        uint256 sinceLastClaim = block.timestamp - lastClaimedFee;
+        // get the amount of tokens to mint
+        uint256 mng3rFeeMint = sinceLastClaim * feePerSecond;
+
+        lastClaimedFee = block.timestamp;
+
+        mint(mng3r, mng3rFeeMint);
     }
 
     // =========== Handle ERC20 ============ //

@@ -14,6 +14,9 @@ const Quinn721 = artifacts.require("Quinn721")
  * See docs: https://www.trufflesuite.com/docs/truffle/testing/writing-tests-in-javascript
  */
 contract("MNG3R - Advanced ERC1155", async accounts => {
+  let protocol = 0
+  let testCoins = 1
+  let user = 2
   let erc20Handler
   let erc721Handler
   let erc1155Handler
@@ -23,22 +26,22 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
   let gov
 
   before(async () => {
-    erc20Handler = await ERC20Handler.new({ from: accounts[0] })
+    erc20Handler = await ERC20Handler.new({ from: accounts[protocol] })
     await MNG3RImplementation.link("ERC20Handler", erc20Handler.address)
 
-    erc721Handler = await ERC721Handler.new({ from: accounts[0] })
+    erc721Handler = await ERC721Handler.new({ from: accounts[protocol] })
     await MNG3RImplementation.link("ERC71Handler", erc721Handler.address)
 
-    erc1155Handler = await ERC1155Handler.new({ from: accounts[0] })
+    erc1155Handler = await ERC1155Handler.new({ from: accounts[protocol] })
     await MNG3RImplementation.link("ERC1155Handler", erc1155Handler.address)
 
-    mng3rImplementation = await MNG3RImplementation.new({ from: accounts[0] })
+    mng3rImplementation = await MNG3RImplementation.new({ from: accounts[protocol] })
 
-    govImplementation = await GovImplementation.new({ from: accounts[0] })
+    govImplementation = await GovImplementation.new({ from: accounts[protocol] })
   })
 
   beforeEach(async () => {
-    factory = await MNG3RFactory.new(mng3rImplementation.address, govImplementation.address, { from: accounts[0] })
+    factory = await MNG3RFactory.new(mng3rImplementation.address, govImplementation.address, { from: accounts[protocol] })
 
     await factory
       .createNewMNG3R(
@@ -49,14 +52,14 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
         '3',
         '1',
         {
-          from: accounts[0]
+          from: accounts[user]
         }
       )
 
     mng3rAddresses = await factory
       .getDeployedMNG3Rs(
         {
-          from: accounts[0]
+          from: accounts[user]
         }
       )
     mng3rAddress = mng3rAddresses[0]
@@ -65,19 +68,19 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
     govAddresses = await factory
       .getDeployedGovs(
         {
-          from: accounts[0]
+          from: accounts[user]
         }
       )
     govAddress = govAddresses[0]
     gov = await GovImplementation.at(govAddress)
 
     // test tokens
-    quinn1155 = await Quinn1155.new({ from: accounts[1] })
+    quinn1155 = await Quinn1155.new({ from: accounts[testCoins] })
   })
 
 
   it('can receive an ERC1155 offer', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const THORS_HAMMER = 2
 
     await quinn1155.mint(
@@ -85,7 +88,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -118,7 +121,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
 
 
   it('can return an expired ERC1155 offer', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const THORS_HAMMER = 2
 
     await quinn1155.mint(
@@ -126,7 +129,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -164,7 +167,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
 
 
   it('can accept an ERC1155 offer - pay with Treasury', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const THORS_HAMMER = 2
 
     await quinn1155.mint(
@@ -172,7 +175,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -198,7 +201,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
     await mng3r.acceptERC1155Offer(
       idx,
       assetPayType,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const ERC1155Payable = await mng3r.getERC1155Payable.call(quinn1155.address, THORS_HAMMER)
@@ -214,14 +217,14 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
 
 
   it('can accept an ERC1155 offer - pay with non-treasury ERC20', async () => {
-    const quinn20 = await Quinn20.new({ from: accounts[1] })
+    const quinn20 = await Quinn20.new({ from: accounts[testCoins] })
     await quinn20.transfer(
       mng3r.address,
       500,
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const THORS_HAMMER = 2
 
     await quinn1155.mint(
@@ -229,7 +232,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -255,7 +258,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
     await mng3r.acceptERC1155Offer(
       idx,
       assetPayType,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const ERC1155Payable = await mng3r.getERC1155Payable.call(quinn1155.address, THORS_HAMMER)
@@ -271,14 +274,14 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
 
 
   it('can accept an ERC1155 offer - pay with ERC721', async () => {
-    const quinn721 = await Quinn721.new({ from: accounts[1] })
+    const quinn721 = await Quinn721.new({ from: accounts[testCoins] })
     await quinn721.safeMint(
       mng3r.address,
       '/1',
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const THORS_HAMMER = 2
 
     await quinn1155.mint(
@@ -286,7 +289,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -312,7 +315,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
     await mng3r.acceptERC1155Offer(
       idx,
       assetPayType,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const ERC1155Payable = await mng3r.getERC1155Payable.call(quinn1155.address, THORS_HAMMER)
@@ -328,7 +331,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
 
 
   it('can accept an ERC1155 offer - pay with ERC1155', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const LOKIS_DAGGER = 1
     const THORS_HAMMER = 2
 
@@ -337,7 +340,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       LOKIS_DAGGER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.mint(
@@ -345,7 +348,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -371,7 +374,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
     await mng3r.acceptERC1155Offer(
       idx,
       assetPayType,
-      { from: accounts[0] }
+      { from: accounts[user] }
     )
 
     const ERC1155Payable = await mng3r.getERC1155Payable.call(quinn1155.address, THORS_HAMMER)
@@ -387,7 +390,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
 
 
   it('only the Admin can accept an ERC1155 offer', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const THORS_HAMMER = 2
 
     await quinn1155.mint(
@@ -395,7 +398,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -422,7 +425,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       await mng3r.acceptERC1155Offer(
         idx,
         assetPayType,
-        { from: accounts[0] }
+        { from: accounts[user] }
       )
     } catch (err) {
       assert.ok(err)
@@ -441,7 +444,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
 
 
   it('can not accept an expired ERC1155 offer', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const THORS_HAMMER = 2
 
     await quinn1155.mint(
@@ -449,7 +452,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -476,7 +479,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       await mng3r.acceptERC1155Offer(
         idx,
         assetPayType,
-        { from: accounts[0] }
+        { from: accounts[user] }
       )
     } catch (err) {
       assert.ok(err)
@@ -495,7 +498,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
 
 
   it('can not receive an ERC1155 offer if offerer does not own nft', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const THORS_HAMMER = 2
 
     await quinn1155.mint(
@@ -503,7 +506,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -540,7 +543,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
 
 
   it('can not send ERC1155 exceeding payable obligations', async () => {
-    const offerMaker = accounts[2]
+    const offerMaker = accounts[8]
     const THORS_HAMMER = 2
 
     await quinn1155.mint(
@@ -548,7 +551,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
       THORS_HAMMER,
       1,
       "0x0",
-      { from: accounts[1] }
+      { from: accounts[testCoins] }
     )
 
     await quinn1155.setApprovalForAll(
@@ -575,7 +578,7 @@ contract("MNG3R - Advanced ERC1155", async accounts => {
         quinn1155.address,
         accounts[5],
         THORS_HAMMER,
-        { from: accounts[0] }
+        { from: accounts[user] }
       )
     } catch (err) {
       assert.ok(err)

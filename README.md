@@ -65,14 +65,14 @@ On local Ganache
 - [X] refactor w/ libraries  
 - [X] refactor as minimal proxy  
 - [X] accept (approve and execute) asset trade offer  
-- [ ] protocol fee structure  
-- [ ] manager fee structure
+- [X] protocol fee structure  
+- [X] manager fee structure
 - [X] write more tests  
 - [X] create Infura project  
 - [X] test w/ OZ Defender account  
 - [X] deploy to Rinkeby testnet  
 - [X] manual test of Fund contract on testnet   
-- [ ] deploy to Optimism testnet  
+- [X] deploy to Optimism testnet  
 - [ ] deploy to Optimism mainnet
 - [ ] deploy to Arbitrum testnet  
 - [ ] deploy to Arbitrum mainnet  
@@ -87,6 +87,6 @@ On local Ganache
 
 ### Governance
 - [X] make Governor contract  
-- [ ] update Fund contract for governance roles and actions
+- [X] update Fund contract for governance roles and actions
 - [X] test w/ Tally account for Governance/DAO 
 
