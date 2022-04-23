@@ -13,12 +13,12 @@ import { useAppContext } from '../libs/contextLib'
 import { useFactory } from '../libs/factoryLib'
 
 
-const renderCampaigns = (campaigns) => {
+const renderMNG3Rs = (campaigns) => {
   const items = campaigns.map((address) => {
     return ({
       header: address,
       description: (
-        <Link href={`/campaigns/${encodeURIComponent(address)}`}>
+        <Link href={`/mng3rs/${encodeURIComponent(address)}`}>
           <a>View Campaign</a>
         </Link>
       ),
@@ -27,7 +27,7 @@ const renderCampaigns = (campaigns) => {
     })
   })
 
-  return <Card.Group items={ items } />
+  return <Card.Group items={items} />
 }
 
 
@@ -40,9 +40,9 @@ export default (props) => {
     networkId, setNetworkId
   } = useAppContext()
 
-  const { data: campaigns, error, mutate } = useFactory({
+  const { data: mng3rs, error, mutate } = useFactory({
     factory: factory,
-    method: 'getDeployedCampaigns',
+    method: 'getDeployedMNG3Rs',
     methParams: [],
     how: 'call',
     howParams: null
@@ -56,19 +56,19 @@ export default (props) => {
   return (
     <Layout>
       <div>
-        <h3>{`${chainId} Open Campaigns`}</h3>
-        <Link href='/campaigns/new'>
+        <h3>{`${chainId} Active MNG3Rs`}</h3>
+        <Link href='/mng3rs/new'>
           <a>
             <Button
-              content="Create Campaign"
+              content="Create MNG3R"
               icon="add circle"
               floated="right"
               primary
             />
           </a>
         </Link>
-        <h3>{ userAccount }</h3>
-        { campaigns ? renderCampaigns(campaigns) : ''}
+        <h3>{userAccount}</h3>
+        {mng3rs ? renderMNG3Rs(mng3rs) : ''}
       </div>
     </Layout>
   )

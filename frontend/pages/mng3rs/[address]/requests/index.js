@@ -12,17 +12,17 @@ import ContributeForm from '../../../../components/ContributeForm'
 import { useAppContext } from '../../../../libs/contextLib'
 
 // Libs
-import { useCampaign } from '../../../../libs/campaignLib'
+import { useMNG3R } from '../../../../libs/mng3rLib'
 
 
 export default () => {
   const router = useRouter()
   const { address } = router.query
 
-  return(
+  return (
     <Layout>
       <h3>Requests</h3>
-      <Link href={`/campaigns/${address}/requests/new`}>
+      <Link href={`/mng3r/${address}/requests/new`}>
         <a>
           <Button
             content="Create Request"

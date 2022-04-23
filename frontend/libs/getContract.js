@@ -1,15 +1,14 @@
 // Contracts
-const getContract = (web3Instance, contractDefinition, networkId=null, address=null) => {
+const getContract = (web3Instance, contractDefinition, networkId = null, address = null) => {
   const web3 = web3Instance
   let deployedAddress
-  
-  if (contractDefinition.contractName === "CampaignFactory") {
+
+  try {
     // get network ID and the deployed address
     deployedAddress = contractDefinition.networks[networkId].address
-  } else {
+  } catch {
     deployedAddress = address
   }
-  
 
   // create the instance
   const instance = new web3.eth.Contract(

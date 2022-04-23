@@ -4,7 +4,7 @@ import { ContextWrapper } from '../libs/contextLib'
 
 import getWeb3, { subscribeProvider, setCurrentState } from '../libs/web3'
 import getContract from '../libs/getContract'
-import factoryDefinition from '../../build/contracts/CampaignFactory.json'
+import factoryDefinition from '../../build/contracts/MNG3RFactory.json'
 
 import 'semantic-ui-css/semantic.min.css'
 
@@ -53,7 +53,7 @@ export default ({ Component, pageProps }) => {
       console.log(`${networkId} is not supported`)
     }
 
-    const handlers = {setUserAccount, setChainId, setNetworkId}
+    const handlers = { setUserAccount, setChainId, setNetworkId }
     await setCurrentState(providerInstance, handlers)
     await subscribeProvider(providerInstance, handlers)
 
@@ -69,17 +69,17 @@ export default ({ Component, pageProps }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
         <link rel="apple-touch-icon" href="/logo192.png" />
-        
+
         <link rel="manifest" href="/manifest.json" />
-        
-        <title>CrowdCoin</title>
+
+        <title>MNG3R</title>
       </Head>
-      {web3 && 
+      {web3 &&
         <ContextWrapper allContext={allContext}>
-          <Component {...pageProps}/>
+          <Component {...pageProps} />
         </ContextWrapper>
       }
-      
+
     </div>
-  ) 
+  )
 }

@@ -8,26 +8,26 @@ import ConnectButton from './connectWalletButton'
 
 
 export default () => {
-  return(
+  return (
     <Menu style={{ marginTop: "10px" }}>
       <Link href="/">
-        <a className="item">CrowdCoin</a>
+        <a className="item">MNG3R</a>
       </Link>
-      
+
       <Menu.Menu position="right">
-        
+
         <Link href="/">
-          <a className="item">Campaigns</a>
+          <a className="item">Active MNG3Rs</a>
         </Link>
-        
-        <Link href="/campaigns/new">
+
+        <Link href="/mng3rs/new">
           <a className="item">+</a>
         </Link>
 
         <Menu.Item>
-          <ConnectButton/>
+          <ConnectButton />
         </Menu.Item>
-      
+
       </Menu.Menu>
     </Menu>
   )

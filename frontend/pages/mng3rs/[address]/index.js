@@ -12,7 +12,7 @@ import ContributeForm from '../../../components/ContributeForm'
 import { useAppContext } from '../../../libs/contextLib'
 
 // Libs
-import { useCampaign } from '../../../libs/campaignLib'
+import { useMNG3R } from '../../../libs/mng3rLib'
 
 
 const renderSummary = (web3, summary) => {
@@ -47,7 +47,7 @@ const renderSummary = (web3, summary) => {
     style: { overflowWrap: 'break-word' }
   }]
 
-  return <Card.Group items={ items } />
+  return <Card.Group items={items} />
 }
 
 
@@ -56,7 +56,8 @@ export default () => {
   const { address } = router.query
   const { web3, userAccount } = useAppContext()
 
-  const { data: summary, error, mutate } = useCampaign({
+  /*
+  const { data: summary, error, mutate } = useMNG3R({
     web3: web3,
     address: address,
     method: 'getSummary',
@@ -64,6 +65,7 @@ export default () => {
     how: 'call',
     howParams: null
   })
+  */
 
   useEffect(async () => {
     //const accounts = await web3.eth.getAccounts()
@@ -73,31 +75,31 @@ export default () => {
   //if (error) return <div>failed to load</div>
   if (!summary) return <div>loading...</div>
 
-  return(
+  return (
     <Layout>
       <h3>Campaign Show</h3>
-        <Grid>
-          <Grid.Row>
-            <Grid.Column width={10}>
-              { renderSummary(web3, summary) }
-            </Grid.Column>
-            <Grid.Column width={6}>
-              <ContributeForm />
-            </Grid.Column>
-          </Grid.Row>
-          <Grid.Row>
-            <Grid.Column>
-              <Link href={`/campaigns/${address}/requests`}>
-                <a>
-                  <Button
-                    content="View Requests"
-                    primary
-                  />
-                </a>
-              </Link>
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={10}>
+            { /*renderSummary(web3, summary)*/}
+          </Grid.Column>
+          <Grid.Column width={6}>
+            <ContributeForm />
+          </Grid.Column>
+        </Grid.Row>
+        <Grid.Row>
+          <Grid.Column>
+            <Link href={`/mng3rs/${address}/requests`}>
+              <a>
+                <Button
+                  content="View Requests"
+                  primary
+                />
+              </a>
+            </Link>
+          </Grid.Column>
+        </Grid.Row>
+      </Grid>
     </Layout>
   )
 }
