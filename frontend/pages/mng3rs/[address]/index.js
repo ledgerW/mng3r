@@ -4,46 +4,65 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 
 // UI
-import { Card, Grid, Button } from 'semantic-ui-react'
+import { Card, Grid, Button, Input } from 'semantic-ui-react'
 import Layout from '../../../components/Layout'
-import ContributeForm from '../../../components/ContributeForm'
+import OfferForm from '../../../components/OfferForm'
 
 // Components and Context
 import { useAppContext } from '../../../libs/contextLib'
 
 // Libs
-import { useMNG3R } from '../../../libs/mng3rLib'
+import { useContract } from '../../../libs/contractLib'
+import showAddress from '../../../libs/utils'
+
+// ABI
+import factoryDef from '../../../../build/contracts/MNG3RFactory.json'
 
 
-const renderSummary = (web3, summary) => {
+const renderSummary = (summary) => {
+  const {
+    currentMNG3R,
+    govAddress,
+    mng3rFee,
+    totalSupply,
+    ethBalance
+  } = summary
+
+  let _govAddress
+  try {
+    _govAddress = govAddress[0].returnValues.gov
+  } catch {
+    _govAddress = null
+  }
+
   const items = [{
-    header: summary.manager,
-    meta: 'Manager',
-    description: 'Address that created this campaign',
+    header: currentMNG3R ? showAddress(currentMNG3R) : currentMNG3R,
+    meta: currentMNG3R,
+    description: 'Current mng3r of this MNG3R',
     style: { overflowWrap: 'break-word' }
   },
   {
-    header: summary.minContribution,
-    meta: 'Minimum Contribution (wei)',
-    description: 'Minimum amount to contribute',
+    header: _govAddress ? showAddress(_govAddress) : _govAddress,
+    meta: 'Address',
+    description: 'Address of governor contract',
     style: { overflowWrap: 'break-word' }
   },
   {
-    header: summary.numApprovers,
-    meta: 'Number of Approvers',
-    description: 'Number of addresses that have contributed',
+    header: mng3rFee,
+    meta: 'Fee',
+    description: 'Annual mng3r fee',
     style: { overflowWrap: 'break-word' }
   },
   {
-    header: summary.numRequests,
-    meta: 'Number of Requests',
-    description: 'Number of pending requests to spend money',
+    header: totalSupply,
+    meta: 'Supply',
+    description: 'Circulating supply of tokens',
     style: { overflowWrap: 'break-word' }
   },
   {
-    header: web3.utils.fromWei(summary.balance, 'ether'),
-    meta: 'Balance (ETH)',
-    description: 'Amount of ETH contributed to this campaign',
+    header: ethBalance,
+    meta: 'ETH',
+    description: 'ETH Balance',
     style: { overflowWrap: 'break-word' }
   }]
 
@@ -54,45 +73,85 @@ const renderSummary = (web3, summary) => {
 export default () => {
   const router = useRouter()
   const { address } = router.query
-  const { web3, userAccount } = useAppContext()
+  const { web3, networkId, userAccount } = useAppContext()
+  const [ethBalance, setEthBalance] = useState()
+  const [firstBlock, setFirstBlock] = useState(0)
 
-  /*
-  const { data: summary, error, mutate } = useMNG3R({
+  const { data: currentMNG3R, error: err1, mutate: mut1 } = useContract({
     web3: web3,
-    address: address,
-    method: 'getSummary',
+    def: 'mng3r',
+    addressOrId: address,
+    action: 'methods',
+    method: 'mng3r',
     methParams: [],
     how: 'call',
     howParams: null
   })
-  */
+
+  const { data: totalSupply, error: err2, mutate: mut2 } = useContract({
+    web3: web3,
+    def: 'mng3r',
+    addressOrId: address,
+    action: 'methods',
+    method: 'totalSupply',
+    methParams: [],
+    how: 'call',
+    howParams: null
+  })
+
+  const { data: mng3rFee, error: err3, mutate: mut3 } = useContract({
+    web3: web3,
+    def: 'mng3r',
+    addressOrId: address,
+    action: 'methods',
+    method: 'mng3rFee',
+    methParams: [],
+    how: 'call',
+    howParams: null
+  })
+
+  const { data: govAddress, error: err4, mutate: mut4 } = useContract({
+    web3: web3,
+    def: 'factory',
+    addressOrId: networkId,
+    action: 'events',
+    method: 'NewMNG3RGovernor',
+    methParams: {
+      filter: { coin: address },
+      fromBlock: firstBlock,
+      toBlock: 'latest'
+    },
+    how: null,
+    howParams: null
+  })
 
   useEffect(async () => {
-    //const accounts = await web3.eth.getAccounts()
-    //setUserWallet(accounts[0])
-  }, [])
+    let _ethBalance = await web3.eth.getBalance(address)
+    setEthBalance(web3.utils.fromWei(_ethBalance, 'ether'))
 
-  //if (error) return <div>failed to load</div>
-  if (!summary) return <div>loading...</div>
+    let factoryTxHash = factoryDef.networks[networkId].transactionHash
+    let txHash = await web3.eth.getTransaction(factoryTxHash)
+    setFirstBlock(txHash.blockNumber)
+  }, [])
 
   return (
     <Layout>
-      <h3>Campaign Show</h3>
+      <h3>MNG3R Show</h3>
       <Grid>
         <Grid.Row>
           <Grid.Column width={10}>
-            { /*renderSummary(web3, summary)*/}
+            {renderSummary({ currentMNG3R, govAddress, mng3rFee, totalSupply, ethBalance })}
           </Grid.Column>
           <Grid.Column width={6}>
-            <ContributeForm />
+            <OfferForm />
           </Grid.Column>
         </Grid.Row>
         <Grid.Row>
           <Grid.Column>
-            <Link href={`/mng3rs/${address}/requests`}>
+            <Link href={`/mng3rs/${address}/offers`}>
               <a>
                 <Button
-                  content="View Requests"
+                  content="View Offers"
                   primary
                 />
               </a>

@@ -1,13 +1,13 @@
 // Contracts
-const getContract = (web3Instance, contractDefinition, networkId = null, address = null) => {
-  const web3 = web3Instance
+const getContract = (_web3, contractDefinition, addressOrId) => {
+  const web3 = _web3
   let deployedAddress
 
   try {
     // get network ID and the deployed address
-    deployedAddress = contractDefinition.networks[networkId].address
+    deployedAddress = contractDefinition.networks[addressOrId].address
   } catch {
-    deployedAddress = address
+    deployedAddress = addressOrId
   }
 
   // create the instance

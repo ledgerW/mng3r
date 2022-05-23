@@ -10,15 +10,21 @@ const factoryFetcher = (args) => {
     how (contract method type, eg. call, send (str))
     howParams (contract method type params (object))
   */
-    console.log(args)
-    const { factory, method, methParams, how, howParams } = args
+  const { factory, action, method, methParams, how, howParams } = args
 
-    let res = []
+  let res = []
 
+  if (action == 'methods') {
     if (typeof factory !== 'undefined') {
       res = factory.methods[method](...methParams)[how](howParams)
-      console.log(res)
     }
+  }
+
+  if (action == 'events') {
+    if (typeof factory !== 'undefined') {
+      res = factory.events[method](methParams)
+    }
+  }
 
   return res
 }
@@ -31,7 +37,7 @@ export const useFactory = (args, options) => {
     how (contract method type, eg. call, send (str))
     howParams (contract method type params (object))
   */
-  const { data, mutate, error } = useSWR(args, factoryFetcher, options )
+  const { data, mutate, error } = useSWR(args, factoryFetcher, options)
 
   return {
     data,

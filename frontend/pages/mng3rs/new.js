@@ -18,8 +18,6 @@ export default () => {
     chainId, setChainId,
     networkId, setNetworkId
   } = useAppContext()
-  console.log(userAccount)
-  console.log(factory)
 
   const router = useRouter()
   const [mng3rName, setMNG3RName] = useState('My MNG3R Token Name')
@@ -91,7 +89,7 @@ export default () => {
             label="Initial Vote Delay"
             labelPosition="left"
             value={initialVoteDelay}
-            onChange={e => { setVoteDelay(e.target.value) }}
+            onChange={e => { setInitialVoteDelay(e.target.value) }}
           />
         </Form.Field>
         <Form.Field>

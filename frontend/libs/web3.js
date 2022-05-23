@@ -22,8 +22,6 @@ const resolveWeb3 = (resolve) => {
   if (alreadyInjected) {
     console.log(`Injected web3 detected.`)
     const providerInstance = window.ethereum
-    console.log(providerInstance)
-    console.log(window.ethereum)
     web3Instance = new Web3(providerInstance)
 
     resolve({ web3Instance, providerInstance })

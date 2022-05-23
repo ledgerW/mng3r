@@ -1,12 +1,18 @@
 // App
 import useSWR from 'swr'
 
+import factoryDefinition from '../../build/contracts/MNG3RFactory.json'
 import mng3rDefinition from '../../build/contracts/MNG3R.json'
 
 import getContract from './getContract'
 
+const contractDefs = {
+  'factory': factoryDefinition,
+  'mng3r': mng3rDefinition
+}
 
-const mng3rFetcher = (args) => {
+
+const contractFetcher = (args) => {
   /*
   args (object) of the follwoing:
     address (address (str))
@@ -15,16 +21,24 @@ const mng3rFetcher = (args) => {
     how (contract method type, eg. call, send (str))
     howParams (contract method type params (object))
   */
-  const { web3, address, method, methParams, how, howParams } = args
+  const { web3, def, addressOrId, action, method, methParams, how, howParams } = args
 
-  const campaign = getContract(web3, mng3rDefinition, null, address)
+  const contract = getContract(web3, contractDefs[def], addressOrId)
 
-  const res = campaign.methods[method](...methParams)[how](howParams)
+  let res = null
+
+  if (action == 'methods') {
+    res = contract.methods[method](...methParams)[how](howParams)
+  }
+
+  if (action == 'events') {
+    res = contract.getPastEvents(method, methParams)
+  }
 
   return res
 }
 
-export const useMNG3R = (args) => {
+export const useContract = (args) => {
   /*
   args (object) of the follwoing:
     address (address (str))
@@ -33,7 +47,7 @@ export const useMNG3R = (args) => {
     how (contract method type, eg. call, send (str))
     howParams (contract method type params (object))
   */
-  const { data, mutate, error } = useSWR(args, mng3rFetcher, { refreshInterval: 5000 })
+  const { data, mutate, error } = useSWR(args, contractFetcher, { refreshInterval: 5000 })
 
   return {
     data,

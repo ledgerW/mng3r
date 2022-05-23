@@ -56,7 +56,7 @@ contract MNG3R is
     address public mng3r;
 
     /// @notice mng3r annual management fee in basis points
-    uint256 public mng3rFee = 200;
+    uint256 public mng3rFee;
 
     /// @notice the last timestamp where fees were claimed
     uint256 public lastClaimedFee;
@@ -73,7 +73,7 @@ contract MNG3R is
 
     /// @notice Map of ERC721 held by this contract
     mapping(uint256 => Holding721) public holding721;
-    uint256 public num721 = 0;
+    uint256 public num721;
 
     struct Holding1155 {
         address from;
@@ -84,7 +84,7 @@ contract MNG3R is
 
     /// @notice Map of ERC1155 held by this contract
     mapping(uint256 => Holding1155) public holding1155;
-    uint256 public num1155 = 0;
+    uint256 public num1155;
 
     // current open offers
     TradeOffers private tradeOffers;
@@ -242,6 +242,9 @@ contract MNG3R is
         _mint(MNG3R_PROTOCOL, (_supply * MNG3R_PROTOCOL_BP) / 10000);
 
         mng3r = _mng3r;
+        mng3rFee = 200;
+        num721 = 0;
+        num1155 = 0;
     }
 
     // ======== Basic Functionality ========= //

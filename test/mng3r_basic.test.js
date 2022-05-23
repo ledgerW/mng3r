@@ -86,15 +86,15 @@ contract("MNG3R - Basic", async accounts => {
   it('sends MNG3R protocol fee', async () => {
     const caller = accounts[protocol]
 
-    await mng3r.mint(
+    let result = await mng3r.mint(
       accounts[7],
       1000000,
       { from: accounts[user] }
     )
 
-    const balance = await mng3r.balanceOf.call(caller)
+    let feeTransfer = result.logs[result.logs.length - 1]
 
-    assert.equal(10000, balance)
+    assert.equal(5000, Number(feeTransfer.args.value))
   })
 
   it('marks caller as the MNG3R MNG3R_ROLE', async () => {
@@ -118,6 +118,7 @@ contract("MNG3R - Basic", async accounts => {
   })
 
   it('updates mng3r and mng3rFee', async () => {
+    const origMNG3RFee = await mng3r.mng3rFee.call()
     const newMNG3R = accounts[9]
     const newFee = 1000
 
@@ -134,6 +135,7 @@ contract("MNG3R - Basic", async accounts => {
     const mng3rMNG3R = await mng3r.mng3r.call()
     const mng3rFee = await mng3r.mng3rFee.call()
 
+    assert.equal(origMNG3RFee, 200)
     assert.equal(mng3rMNG3R, newMNG3R)
     assert.equal(mng3rFee, newFee)
   })

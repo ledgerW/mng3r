@@ -32,13 +32,17 @@ contract MNG3RFactory is Ownable, Pausable {
 
     event NewMNG3R(
         address indexed newCoin,
-        address admin,
+        address indexed admin,
         string name,
         string symbol,
         uint256 supply
     );
 
-    event NewMNG3RGovernor(address indexed gov, string name);
+    event NewMNG3RGovernor(
+        address indexed gov,
+        address indexed coin,
+        string name
+    );
 
     // ====================================== //
     // ============= Functions ============== //
@@ -86,7 +90,7 @@ contract MNG3RFactory is Ownable, Pausable {
             _period,
             _thresh
         );
-        emit NewMNG3RGovernor(govClone, _name);
+        emit NewMNG3RGovernor(govClone, mng3rClone, _name);
 
         deployedGovList.push(govClone);
 

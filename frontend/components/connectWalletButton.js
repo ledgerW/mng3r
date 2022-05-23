@@ -10,6 +10,7 @@ import { useAppContext } from '../libs/contextLib'
 
 // Libs
 import { subscribeProvider, setCurrentState } from '../libs/web3'
+import showAddress from '../libs/utils'
 
 
 
@@ -23,7 +24,7 @@ export default () => {
 
   const handlers = { setUserAccount, setChainId, setNetworkId }
 
-  const buttonContent = userAccount ? userAccount : 'Connect'
+  const buttonContent = userAccount ? showAddress(userAccount) : 'Connect'
 
   async function getWeb3Modal() {
     const web3Modal = new Web3Modal({
@@ -32,7 +33,7 @@ export default () => {
       providerOptions: {
         walletconnect: {
           package: WalletConnectProvider,
-          options: { 
+          options: {
             infuraId: process.env.INFURA_ID
           },
         },
@@ -40,12 +41,12 @@ export default () => {
     })
     return web3Modal
   }
-  
+
   async function connect() {
     try {
       const web3Modal = await getWeb3Modal()
       const provider = await web3Modal.connect()
-      
+
       const web3Instance = new Web3(provider)
       setWeb3(web3Instance)
 
@@ -61,7 +62,7 @@ export default () => {
   }
 
 
-  return(
-    <Button primary content={ buttonContent } onClick={ handleClick }/>
+  return (
+    <Button primary content={buttonContent} onClick={handleClick} />
   )
 }
