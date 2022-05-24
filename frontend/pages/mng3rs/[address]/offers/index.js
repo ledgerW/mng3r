@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 
 // UI
-import { Card, Grid, Button, Feed } from 'semantic-ui-react'
+import { Card, Grid, Button, Feed, Form } from 'semantic-ui-react'
 import Layout from '../../../../components/Layout'
 
 // Components and Context
@@ -17,58 +17,14 @@ import getContract from '../../../../libs/getContract'
 import mng3rDef from '../../../../../build/contracts/MNG3R.json'
 
 
-const renderOffers = (offers) => {
-  console.log(offers)
-  const cards = offers.map((offer, idx) => {
-    return (<Card>
-      <Card.Content>
-        <Card.Header>ERC20 Offer By: {showAddress(offer.offerMaker)}</Card.Header>
-        <Card.Meta>{`Offer Index: ${idx}`}</Card.Meta>
-      </Card.Content>
-      <Card.Content>
-        <Feed>
-          <Feed.Event
-            icon='pencil'
-            content={`Offered Asset: ${showAddress(offer.toMNG3RAsset)}`}
-          />
-          <Feed.Event
-            icon='pencil'
-            content={`Offered Amount: ${offer.toMNG3RAmtOrId}`}
-          />
-          <Feed.Event
-            icon='pencil'
-            content={`Requested Asset: ${showAddress(offer.fromMNG3RAsset)}`}
-          />
-          <Feed.Event
-            icon='pencil'
-            content={`Requested Amount: ${offer.fromMNG3RAmtOrId}`}
-          />
-          <Feed.Event
-            icon='pencil'
-            content={`Expires: ${showTime(offer.expirationTime)}`}
-          />
-        </Feed>
-      </Card.Content>
-      <Card.Content extra>
-        <Button.Group>
-          <Button positive>Accept</Button>
-          <Button.Or />
-          <Button negative>Return</Button>
-        </Button.Group>
-      </Card.Content>
-    </Card>)
-  })
-
-  return cards
-}
-
-
 export default () => {
   const router = useRouter()
   const { address } = router.query
 
   const { web3, userAccount } = useAppContext()
 
+  const [isWaiting, setIsWaiting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(null)
   const [offers, setOffers] = useState([])
 
   const mng3r = getContract(web3, mng3rDef, address)
@@ -84,13 +40,91 @@ export default () => {
     howParams: null
   })
 
+  const renderOffers = (offers) => {
+    console.log(offers)
+    const cards = offers.map((offer, idx) => {
+      return (
+        <Card key={idx}>
+          <Card.Content>
+            <Card.Header>ERC20 Offer By: {showAddress(offer.offerMaker)}</Card.Header>
+            <Card.Meta>{`Offer Index: ${idx}`}</Card.Meta>
+          </Card.Content>
+          <Card.Content>
+            <Feed>
+              <Feed.Event
+                icon='pencil'
+                content={`Offered Asset: ${showAddress(offer.toMNG3RAsset)}`}
+              />
+              <Feed.Event
+                icon='pencil'
+                content={`Offered Amount: ${offer.toMNG3RAmtOrId}`}
+              />
+              <Feed.Event
+                icon='pencil'
+                content={`Requested Asset: ${showAddress(offer.fromMNG3RAsset)}`}
+              />
+              <Feed.Event
+                icon='pencil'
+                content={`Requested Amount: ${offer.fromMNG3RAmtOrId}`}
+              />
+              <Feed.Event
+                icon='pencil'
+                content={`Expires: ${showTime(offer.expirationTime)}`}
+              />
+            </Feed>
+          </Card.Content>
+          <Card.Content extra>
+            <Button.Group>
+              <Button
+                positive
+                onClick={(e) => acceptOffer(idx, Number(offer.assetPayType), e)}
+                loading={isWaiting}
+              >
+                Accept
+              </Button>
+              <Button.Or />
+              <Button negative>Return</Button>
+            </Button.Group>
+          </Card.Content>
+        </Card>)
+    })
+
+    return cards
+  }
+
+  const acceptOffer = async (idx, assetPayType, e) => {
+    e.preventDefault()
+
+    setIsWaiting(true)
+
+    try {
+      await mng3r.methods.acceptERC20Offer(
+        idx,
+        assetPayType
+      )
+        .send({
+          from: userAccount
+        })
+    } catch (err) {
+      console.log(err)
+      setErrorMessage(err.message)
+    }
+    setIsWaiting(false)
+  }
+
   useEffect(async () => {
     console.log(numOffers)
 
-    let offers = []
-    for (const n in Array.from(Array(numOffers).keys())) {
-      let offer = await mng3r.methods.getERC20Offer(n).call()
-      offers.push(offer)
+    let offers
+
+    if (numOffers > 0) {
+      offers = []
+      for (var n = 0; n < numOffers; n++) {
+        console.log(n)
+        let offer = await mng3r.methods.getERC20Offer(n).call()
+        console.log(offer)
+        offers.push(offer)
+      }
     }
 
     setOffers(offers)
@@ -103,7 +137,7 @@ export default () => {
         <Grid.Row>
           <Grid.Column width={6}>
             <Card.Group>
-              {offers ? renderOffers(offers) : ''}
+              {offers ? renderOffers(offers) : 'No Active Offers'}
             </Card.Group>
           </Grid.Column>
         </Grid.Row>

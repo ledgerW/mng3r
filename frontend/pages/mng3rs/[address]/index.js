@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 
 // UI
-import { Card, Grid, Button, Input } from 'semantic-ui-react'
+import { Card, Grid, Button, Form, Message } from 'semantic-ui-react'
 import Layout from '../../../components/Layout'
 import OfferForm from '../../../components/OfferForm'
 
@@ -21,6 +21,7 @@ import factoryDef from '../../../../build/contracts/MNG3RFactory.json'
 
 const renderSummary = (summary) => {
   const {
+    symbol,
     currentMNG3R,
     govAddress,
     mng3rFee,
@@ -36,34 +37,40 @@ const renderSummary = (summary) => {
   }
 
   const items = [{
+    header: symbol,
+    meta: 'Symbol',
+    style: { overflowWrap: 'break-word' },
+    key: symbol
+  },
+  {
     header: currentMNG3R ? showAddress(currentMNG3R) : currentMNG3R,
-    meta: currentMNG3R,
-    description: 'Current mng3r of this MNG3R',
-    style: { overflowWrap: 'break-word' }
+    meta: 'Current mng3r of this MNG3R',
+    style: { overflowWrap: 'break-word' },
+    key: currentMNG3R
   },
   {
     header: _govAddress ? showAddress(_govAddress) : _govAddress,
-    meta: 'Address',
-    description: 'Address of governor contract',
-    style: { overflowWrap: 'break-word' }
+    meta: 'Address of governor contract',
+    style: { overflowWrap: 'break-word' },
+    key: _govAddress
   },
   {
     header: mng3rFee,
-    meta: 'Fee',
-    description: 'Annual mng3r fee',
-    style: { overflowWrap: 'break-word' }
+    meta: 'Annual mng3r fee',
+    style: { overflowWrap: 'break-word' },
+    key: mng3rFee
   },
   {
     header: totalSupply,
-    meta: 'Supply',
-    description: 'Circulating supply of tokens',
-    style: { overflowWrap: 'break-word' }
+    meta: 'Circulating supply of tokens',
+    style: { overflowWrap: 'break-word' },
+    key: totalSupply
   },
   {
     header: ethBalance,
-    meta: 'ETH',
-    description: 'ETH Balance',
-    style: { overflowWrap: 'break-word' }
+    meta: 'ETH Balance',
+    style: { overflowWrap: 'break-word' },
+    key: ethBalance
   }]
 
   return <Card.Group items={items} />
@@ -77,7 +84,29 @@ export default () => {
   const [ethBalance, setEthBalance] = useState()
   const [firstBlock, setFirstBlock] = useState(0)
 
-  const { data: currentMNG3R, error: err1, mutate: mut1 } = useContract({
+  const { data: name, error: err1, mutate: mut1 } = useContract({
+    web3: web3,
+    def: 'mng3r',
+    addressOrId: address,
+    action: 'methods',
+    method: 'name',
+    methParams: [],
+    how: 'call',
+    howParams: null
+  })
+
+  const { data: symbol, error: err2, mutate: mut2 } = useContract({
+    web3: web3,
+    def: 'mng3r',
+    addressOrId: address,
+    action: 'methods',
+    method: 'symbol',
+    methParams: [],
+    how: 'call',
+    howParams: null
+  })
+
+  const { data: currentMNG3R, error: err3, mutate: mut3 } = useContract({
     web3: web3,
     def: 'mng3r',
     addressOrId: address,
@@ -88,7 +117,7 @@ export default () => {
     howParams: null
   })
 
-  const { data: totalSupply, error: err2, mutate: mut2 } = useContract({
+  const { data: totalSupply, error: err4, mutate: mut4 } = useContract({
     web3: web3,
     def: 'mng3r',
     addressOrId: address,
@@ -99,7 +128,7 @@ export default () => {
     howParams: null
   })
 
-  const { data: mng3rFee, error: err3, mutate: mut3 } = useContract({
+  const { data: mng3rFee, error: err5, mutate: mut5 } = useContract({
     web3: web3,
     def: 'mng3r',
     addressOrId: address,
@@ -110,7 +139,7 @@ export default () => {
     howParams: null
   })
 
-  const { data: govAddress, error: err4, mutate: mut4 } = useContract({
+  const { data: govAddress, error: err6, mutate: mut6 } = useContract({
     web3: web3,
     def: 'factory',
     addressOrId: networkId,
@@ -136,26 +165,32 @@ export default () => {
 
   return (
     <Layout>
-      <h3>MNG3R Show</h3>
       <Grid>
         <Grid.Row>
-          <Grid.Column width={10}>
-            {renderSummary({ currentMNG3R, govAddress, mng3rFee, totalSupply, ethBalance })}
+          <Grid.Column width={9}>
+            <Form>
+              <h3>{name}</h3>
+              {renderSummary({
+                symbol, currentMNG3R, govAddress, mng3rFee, totalSupply, ethBalance
+              })}
+              <h3>
+                <Link href={`/mng3rs/${address}/offers`}>
+                  <a>
+                    <Button
+                      content="View Offers"
+                      primary
+                    />
+                  </a>
+                </Link>
+              </h3>
+            </Form>
           </Grid.Column>
-          <Grid.Column width={6}>
+          <Grid.Column width={7}>
             <OfferForm />
           </Grid.Column>
         </Grid.Row>
         <Grid.Row>
           <Grid.Column>
-            <Link href={`/mng3rs/${address}/offers`}>
-              <a>
-                <Button
-                  content="View Offers"
-                  primary
-                />
-              </a>
-            </Link>
           </Grid.Column>
         </Grid.Row>
       </Grid>

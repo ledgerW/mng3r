@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 
 // UI
-import { Button, Form, Input, Message } from 'semantic-ui-react'
+import { Button, Form, Input, Message, Step } from 'semantic-ui-react'
 
 // Components and Context
 import { useAppContext } from '../libs/contextLib'
@@ -35,6 +35,8 @@ export default (props) => {
   const [fromMNG3R1155Amt, setFromMNG3R1155Amt] = useState(0)
   const [expiresInSeconds, setExpiresInSeconds] = useState(0)
 
+  const [isComplete1, setIsComplete1] = useState(false)
+  const [isComplete2, setIsComplete2] = useState(false)
   const [isWaiting, setIsWaiting] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
 
@@ -45,6 +47,8 @@ export default (props) => {
     e.preventDefault()
 
     setIsWaiting(true)
+    setIsComplete1(false)
+    setIsComplete2(false)
 
     const IERC20 = getContract(web3, IERC20Def, toMNG3RAsset)
 
@@ -56,6 +60,7 @@ export default (props) => {
         .send({
           from: userAccount
         })
+      setIsComplete1(true)
 
       await mng3r.methods.offerERC20ToFund(
         toMNG3RAsset,
@@ -69,8 +74,7 @@ export default (props) => {
         .send({
           from: userAccount
         })
-
-      //router.push('/')
+      setIsComplete2(true)
     } catch (err) {
       setErrorMessage(err.message)
     }
@@ -81,6 +85,23 @@ export default (props) => {
   return (
     <Form onSubmit={onSubmit} error={!!errorMessage}>
       <h3>Make an Offer</h3>
+
+      <Step.Group ordered size='small'>
+        <Step completed={isComplete1}>
+          <Step.Content>
+            <Step.Title>Approve</Step.Title>
+            <Step.Description>Grant MNG3R permission</Step.Description>
+          </Step.Content>
+        </Step>
+
+        <Step completed={isComplete2}>
+          <Step.Content>
+            <Step.Title>Make Offer</Step.Title>
+            <Step.Description>Confirm Offer Transaction</Step.Description>
+          </Step.Content>
+        </Step>
+      </Step.Group>
+
       <Form.Field>
         <label>Offer Asset</label>
         <Input
